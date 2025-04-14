@@ -25,7 +25,7 @@ editor: visual
 
 ## Use of AI Tools
 
-AI tools were used to assist in writing and coding: - **ChatGPT (OpenAI)** was used to clarify statistical concepts, draft parts of code, and suggest text structure. - All code was reviewed, understood, and adapted by the authors. Output was carefully verified for correctness.
+AI tools were used to assist in writing and coding: - **ChatGPT (OpenAI)** was used to clarify statistical concepts, draft parts of code, and suggest text structure. - All code was reviewed, understood, and adapted by the author. - Output was carefully verified for correctness.
 
 Spelling and grammar suggestions from **RStudio Visual Editor** were used.
 
@@ -38,9 +38,9 @@ Spelling and grammar suggestions from **RStudio Visual Editor** were used.
 +===========================+============================================================+
 | Mattis Ranheim            | Analysis, Discussions, Programming, Visualisation, Writing |
 +---------------------------+------------------------------------------------------------+
-| Madeleine Ekstrand        | Analysis, Discussions, Programming, Visualisation, Writing |
+| Madeleine Ekstrand        | Same as above                                              |
 +---------------------------+------------------------------------------------------------+
-| Yassin Hjuler El Mahdaoui | Analysis, Discussions, Programming, Visualisation, Writing |
+| Yassin Hjuler El Mahdaoui | Same as above                                              |
 +---------------------------+------------------------------------------------------------+
 
 # Introduction
@@ -104,6 +104,8 @@ The aim is to assess whether a log-transformation of the outcome variable improv
 
 Below, we compare the two models using **residual plots** and **Q-Q plots** for both. A good model should show no patterns in the residuals vs fitted plot, and the residuals should lie close to the theoretical line in the Q-Q plot.
 
+These graphs show the residual and QQ-plots for the **Linear** and log-trans
+
 ```{r}
 #Loading the data
 library(readxl)
@@ -112,49 +114,49 @@ study_data <- read_excel("data/carotene.xlsx")
 
 ```{r}
 # Linear model (no transformation)
-model_1_lin <- lm(betaplasma ~ bmi, data = study_data)
+model_lin <- lm(betaplasma ~ bmi, data = study_data)
 
 # Log-transformed model
-model_1_log <- lm(log(betaplasma) ~ bmi, data = study_data)
+model_log <- lm(log(betaplasma) ~ bmi, data = study_data)
 ```
 
-```{r, fig.cap="Residual plots and Q-Q plots for linear and log-transformed BMI model"}
+```{r}
 
 library(ggplot2)
 library(patchwork)
 
 # Saving Residuals
-plot_1_df_lin <- data.frame(
-  fitted = fitted(model_1_lin),
-  resid = resid(model_1_lin)
+plot_df_lin <- data.frame(
+  fitted = fitted(model_lin),
+  resid = resid(model_lin)
   )
 
-plot_1_df_log <- data.frame(
-  fitted = fitted(model_1_log),
-  resid = resid(model_1_log)
+plot_df_log <- data.frame(
+  fitted = fitted(model_log),
+  resid = resid(model_log)
   )
 
 # Linear model plots
-p1 <- ggplot(plot_1_df_lin, aes(x = fitted, y = resid)) +
+p1 <- ggplot(plot_df_lin, aes(x = fitted, y = resid)) +
   geom_point() +
   geom_hline(yintercept = 0, color = "red") +
   labs(title = "Residuals vs Fitted (Linear)", x = "Fitted", y = "Residuals") +
   theme_minimal()
 
-p2 <- ggplot(plot_1_df_lin, aes(sample = resid)) +
+p2 <- ggplot(plot_df_lin, aes(sample = resid)) +
   stat_qq() +
   stat_qq_line(color = "red") +
   labs(title = "Q-Q Plot (Linear)", x = "Theoretical", y = "Sample Quantiles") +
   theme_minimal()
 
 # Log model plots
-p3 <- ggplot(plot_1_df_log, aes(x = fitted, y = resid)) +
+p3 <- ggplot(plot_df_log, aes(x = fitted, y = resid)) +
   geom_point() +
   geom_hline(yintercept = 0, color = "blue") +
   labs(title = "Residuals vs Fitted (Log)", x = "Fitted", y = "Residuals") +
   theme_minimal()
 
-p4 <- ggplot(plot_1_df_log, aes(sample = resid)) +
+p4 <- ggplot(plot_df_log, aes(sample = resid)) +
   stat_qq() +
   stat_qq_line(color = "blue") +
   labs(title = "Q-Q Plot (Log)", x = "Theoretical Quantiles", y = "Sample Quantiles") +
@@ -165,15 +167,15 @@ p4 <- ggplot(plot_1_df_log, aes(sample = resid)) +
 
 ```
 
-The residual plots and Q-Q plots show that the log-transformed model produces more homoscedastic residuals and better alignment with the normal distribution in the Q-Q plot. In contrast, the residuals of the linear model display signs of heteroscedasticity and heavier tails.
+The residual plots and Q-Q plots show that the **log-transformed model** produces more homoscedastic residuals and better alignment with the normal distribution in the Q-Q plot. In contrast, the residuals of the linear model display signs of heteroscedasticity and heavier tails.
 
-This suggests that the log transformation stabilizes the variance and brings the residuals closer to normality. Therefore, the log-transformed model is more suitable for satisfying the assumptions of linear regression. This model will hence force be referred to as **Model 1.**
+This suggests that the log transformation stabilizes the variance and brings the residuals closer to normality. Therefore, the **log-transformed model is more suitable** for satisfying the assumptions of linear regression.
 
 ## 1.2 Model Estimates
 
-To interpret the relationship between BMI and plasma β-carotene concentration, we present the coefficient estimates from the **Model 1**:
+To interpret the relationship between BMI and plasma β-carotene concentration, we present the coefficient estimates from the log-linear model:
 
-The table below shows the **β-estimates** and their associated **95% confidence intervals**. The intercept corresponds to the expected value of log(β-carotene) when BMI is zero (which is not realistic in practice, but needed for the mathematical formulation), while the slope for BMI (β₁) describes the expected change in the log(β-carotene) concentration for each one-unit increase in BMI.
+The table below shows the **β-estimates** and their associated **95% confidence intervals**. The intercept corresponds to the expected value of log(β-carotene) when BMI is zero (which is not realistic in practice, but needed for the mathematical formulation), while the slope for BMI describes the expected **multiplicative change** in β-carotene concentration for each one-unit increase in BMI.
 
 |           | Estimate | 2.5 %   | 97.5 %  |
 |-----------|----------|---------|---------|
@@ -183,16 +185,22 @@ The table below shows the **β-estimates** and their associated **95% confidence
 ```{r, include = FALSE}
 
 # Create table of estimates + 95% CI
-conf_table <- as.data.frame(confint(model_1_log))
-conf_table$Estimate <- coef(model_1_log)
+conf_table <- as.data.frame(confint(model_log))
+conf_table$Estimate <- coef(model_log)
 conf_table <- conf_table[, c("Estimate", "2.5 %", "97.5 %")]
 
 round(conf_table, 4)
 ```
 
-The estimate for $\beta_1$ is **−0.0359**, with a 95% confidence interval from **−0.0494 to −0.0224**, indicating a statistically significant negative association. This suggests that for every additional unit increase in BMI, the **log of plasma β-carotene decreases**. This negative association supports the hypothesis that higher body fat may be linked to lower plasma concentrations of this micronutrient.
+The estimate for $\beta_1$ is **−0.0359**, with a 95% confidence interval from **−0.0494 to −0.0224**, indicating a statistically significant negative association. This suggests that for every additional unit increase in BMI, the **log of plasma β-carotene decreases**, implying an **approximate 3.5% reduction** in β-carotene levels per BMI unit.
+
+This negative association supports the hypothesis that higher body fat may be linked to lower concentrations of this micronutrient.
 
 ### 1.2.2 Linear Model confidence and prediction intervals with Log Transformation and Back-Transformation
+
+To investigate how plasma β-carotene levels relate to BMI, we fit a linear regression model where the outcome was **log-transformed β-carotene concentration**. This transformation helps satisfy linear regression assumptions, especially linearity and homoscedasticity.
+
+Below, we show two plots:
 
 -   The **top plot** shows the relationship between BMI and the log-transformed β-carotene levels, with fitted line, 95% confidence interval, and 95% prediction interval.
 -   The **bottom plot** displays the same model but transformed back to the original β-carotene scale (ng/ml). This gives a more intuitive interpretation of the effect in absolute terms.
@@ -202,8 +210,8 @@ The estimate for $\beta_1$ is **−0.0359**, with a 95% confidence interval from
 
 # Prediction grid
 bmi_seq <- data.frame(bmi = seq(min(study_data$bmi), max(study_data$bmi), length.out = 100))
-pred_ci <- predict(model_1_log, newdata = bmi_seq, interval = "confidence")
-pred_pi <- predict(model_1_log, newdata = bmi_seq, interval = "prediction")
+pred_ci <- predict(model_log, newdata = bmi_seq, interval = "confidence")
+pred_pi <- predict(model_log, newdata = bmi_seq, interval = "prediction")
 
 # Combine into data frame
 plot_df <- cbind(bmi_seq, pred_ci,
@@ -247,15 +255,23 @@ These results suggest that BMI is negatively associated with β-carotene levels,
 
 ## 1.3 Estimated Changes in Plasma β-carotene for Changes in BMI
 
+We interpret the log-linear regression model by expressing expected **percentage changes** in plasma β-carotene (ng/ml) for three different BMI changes:
+
+1.  **BMI increased by 1 unit**
+2.  **BMI decreased by 1 unit**
+3.  **BMI decreased by 10 units**
+
 ```{r, include = FALSE}
 # Extract BMI coefficient and confidence interval
-beta1 <- coef(model_1_log)["bmi"]
-beta1_ci <- confint(model_1_log)["bmi", ]
+beta1 <- coef(model_log)["bmi"]
+beta1_ci <- confint(model_log)["bmi", ]
 
 # Function to compute percent change
 pc <- function(b) (exp(b) - 1) * 100
 
 # Compute estimates
+
+
 change_table <- data.frame(
   `BMI Change` = c("+1", "−1", "−10"),
   `Estimate (%)` = round(c(pc(beta1), pc(-beta1), pc(-10 * beta1)), 2),
@@ -266,7 +282,7 @@ change_table <- data.frame(
 { cat("Estimated % change in plasma β-carotene (95% CI)\n\n"); change_table }
 ```
 
-We interpret the log-linear regression model by expressing expected **percentage changes** in plasma β-carotene (ng/ml) for three different BMI changes. From the calculations, we can conclude the following:
+From the calculations, we can conclude the following:
 
 -   A **1-unit increase in BMI** is associated with a **3.5% decrease** in plasma β-carotene concentration, with a 95% CI ranging from **−4.8% to −2.2%**.
 -   A **1-unit decrease in BMI** leads to an **estimated 3.7% increase** in plasma β-carotene concentration, with a 95% CI ranging from **5.1% to 2.3%**.
@@ -286,7 +302,7 @@ We use a **t-test** on the slope coefficient in the linear model. The test stati
 
 ```{r, include = FALSE}
 # Get summary of the model
-model_summary <- summary(model_1_log)
+model_summary <- summary(model_log)
 
 # Extract test statistic, degrees of freedom and p-value for the slope
 t_stat <- model_summary$coefficients["bmi", "t value"]
@@ -304,9 +320,14 @@ cat("Two-sided P-value:    ", format.pval(p_value, digits = 4), "\n")
 | **Degrees of freedom** | 313       |
 | **Two-sided P-value**  | 3.111e-07 |
 
-Since the P-value is far below 0.05, we reject the null hypothesis at the 5% significance level. This indicates that BMI is a statistically significant predictor of log-transformed plasma β-carotene levels. The negative t-statistic (t = –5.23) and the negative slope coefficient support an inverse relationship: as BMI increases, the expected log(β-carotene) concentration tends to decrease.
+Since the **P-value is far less than 0.05**, we **reject the null hypothesis** at the 5% significance level.\
+This indicates that **BMI is a statistically significant predictor** of log-transformed plasma β-carotene levels.
 
-With 313 degrees of freedom, the model has a strong basis for inference, and the very low p-value (3.111e-07) provides robust evidence against the null hypothesis. We therefore conclude that there is both a statistically and practically significant linear relationship between BMI and log(β-carotene).
+The **negative value of the t-statistic** (t = –5.23) along with the **negative slope coefficient** (from earlier results) suggests an **inverse relationship**: as BMI increases, the expected log(β-carotene) concentration tends to decrease.
+
+With **313 degrees of freedom**, the model has a strong basis for inference, and the **very low p-value (3.111e-07)** strengthens the evidence against the null hypothesis.
+
+Thus, we conclude that there is a **statistically and practically significant linear relationship** between BMI and log(β-carotene).
 
 # **2. Plasma β-carotene and Smoking Habits**
 
@@ -349,15 +370,15 @@ print("Summary statistics by smoking category:")
 print(summary_table)
 ```
 
-+----------------+-----------+------------+------------+-----------------+-----------------+
-| **Smokstat**   | **Count** | **Mean** β | **S.D.** β | **Mean log(**β) | **S.D. log(**β) |
-+----------------+-----------+------------+------------+-----------------+-----------------+
-| Never Smoker   | 157       | 206.1146   | 193.14184  | 5.050849        | 0.7453628       |
-+----------------+-----------+------------+------------+-----------------+-----------------+
-| Former Smoker  | 115       | 193.4696   | 191.63952  | 4.941126        | 0.7975007       |
-+----------------+-----------+------------+------------+-----------------+-----------------+
-| Current Smoker | 43        | 121.3256   | 78.81163   | 4.613638        | 0.6243772       |
-+----------------+-----------+------------+------------+-----------------+-----------------+
++----------------+-----------+------------------+------------------+-----------------------+-----------------------+
+| **Smokstat**   | **Count** | **Mean** $\beta$ | **S.D.** $\beta$ | **Mean** $log(\beta)$ | **S.D.** $log(\beta)$ |
++----------------+-----------+------------------+------------------+-----------------------+-----------------------+
+| Never Smoker   | 157       | 206.1146         | 193.14184        | 5.050849              | 0.7453628             |
++----------------+-----------+------------------+------------------+-----------------------+-----------------------+
+| Former Smoker  | 115       | 193.4696         | 191.63952        | 4.941126              | 0.7975007             |
++----------------+-----------+------------------+------------------+-----------------------+-----------------------+
+| Current Smoker | 43        | 121.3256         | 78.81163         | 4.613638              | 0.6243772             |
++----------------+-----------+------------------+------------------+-----------------------+-----------------------+
 
 Given the three smoking categories — *Never smoker*, *Former smoker*, and *Current smoker* — we choose **Never smoker** as the reference category in our regression modeling. This choice is motivated by the following:
 
@@ -367,13 +388,13 @@ Given the three smoking categories — *Never smoker*, *Former smoker*, and *Cur
 
 • Comparing other groups (former and current smokers) to this “cleanest” category allows for **straightforward interpretation** of differences in plasma β-carotene levels.
 
-As a result, we will refer to this as **Model 2** in subsequent chapters.
+As a result, we will refer to this as **Categorical Smoking Model** in subsequent chapters.
 
 ### 2.1.3 Boxplots for Smoking Categories
 
 To further assess differences between groups and evaluate the need for transformation, we present boxplots of plasma β-carotene and log-transformed β-carotene across smoking status:
 
-```{r, fig.cap="Box plots of β-carotene and log(β-carotene)"}
+```{r}
 
 # Raw scale
 p_beta <- ggplot(study_data, aes(x = smokstat, y = betaplasma, fill = smokstat)) +
@@ -402,9 +423,9 @@ The boxplots reveal substantial skewness and variability in the raw β-carotene 
 
 We investigate how plasma β-carotene levels (on the log scale) differ across smoking status categories by fitting two versions of a linear regression model:
 
-• In **Model 2A**, the reference category is **“Never smoker”**
+• In **Model A**, the reference category is **“Never smoker”**
 
-• In **Model 2B**, the reference category is **“Current smoker”**
+• In **Model B**, the reference category is **“Current smoker”**
 
 ```{r, include = FALSE}
 # Fit model with "Never smoker" as reference category
@@ -439,11 +460,9 @@ summary_current$coefficients
 
 -   In both models, the **intercept** represents the mean log(β-carotene) level for the **reference category**. The other coefficients represent the difference in mean log(β-carotene) compared to the reference.
 
--   In Model 2A, the intercept corresponds to “Never smoker”, and the coefficients show how much lower (on average) former or current smokers are. In Model 2B, the intercept corresponds to “Current smoker”, and the coefficients show how much higher never and former smokers are.
+-   In Model A, the intercept corresponds to “Never smoker”, and the coefficients show how much lower (on average) former or current smokers are. In Model B, the intercept corresponds to “Current smoker”, and the coefficients show how much higher never and former smokers are.
 
 -   One reason the standard error for the intercept is higher in the model where Never Smoker is the reference is because that answer has fewer observations, leading to a less precise estimate.
-
-These results reinforce our decision to choose Never Smoker as the reference in **Model 2.**
 
 ## 2.3 Predicted β-carotene Levels by Smoking Group
 
@@ -488,6 +507,7 @@ results <- data.frame(
   Beta_ModelB_Upper    = round(pred_beta_current[, "upr"], 1)
 )
 
+print(results)
 ```
 
 | Log(beta-carotene) | 2.5 % | Estimate | 97.5 % |
@@ -504,13 +524,13 @@ results <- data.frame(
 
 ### Interpretation
 
-The predicted values and their 95% confidence intervals are **identical** for both models and we therefore only include 2 tables above.
+The predicted values and their 95% confidence intervals are **identical** for both models:
 
 -   For **Never smokers**, the estimated plasma β-carotene level is approximately **156.2 ng/ml** with a 95% CI of **138.8 to 175.7**.
 -   For **Former smokers**, the level is approximately **139.9 ng/ml** with a CI of **121.9 to 160.6**.
 -   For **Current smokers**, it is around **100.9 ng/ml**, with a CI of **80.5 to 126.3**.
 
-This confirms that **the predictions and their confidence intervals are invariant to the choice of reference level**. Changing the reference category affects the interpretation of the regression coefficients, but not the actual fitted values or predictions.
+This confirms that **the predictions and their confidence intervals are invariant to the choice of reference level**, as expected. Changing the reference category affects the interpretation of the regression coefficients, but not the actual fitted values or predictions.
 
 These values also align well with the group-wise means from section 2(a), reinforcing that the model provides an appropriate summary of the data.
 
@@ -542,7 +562,7 @@ To evaluate whether smoking status has a statistically significant effect on pla
 
 The hypotheses for the test are:
 
-• **Null hypothesis (H₀):** μ₁ = μ₂ = μ₃ - All groups have the same mean log plasma β-carotene level.
+• **Null hypothesis (H₀):** μ₁ = μ₂ = μ₃ — all groups have the same mean log plasma β-carotene level.
 
 • **Alternative hypothesis (H₁):** At least one group has a different mean.
 
@@ -550,7 +570,7 @@ The test result gave the following:
 
 • **F-statistic:** 5.75
 
-• **Degrees of freedom:** 312
+• **Degrees of freedom:** 2 and 312
 
 • **P-value:** 0.00353
 
@@ -573,12 +593,6 @@ mutate(study_data,
                        levels = c(1, 2, 3),
                        labels = c("often", "seldom", "no"))) -> study_data
 
-# Then set the reference levels
-study_data <- mutate(study_data,
-  sex = relevel(sex, ref = "female"),
-  vituse = relevel(vituse, ref = "no")
-)
-
 # Studying categorical variables to choose reference category
 table(study_data$sex) # "female" many more #obs
 table(study_data$vituse) # "often" most #obs, no would make sense in domain
@@ -600,17 +614,7 @@ To examine potential multicollinearity and other problems among the continuous p
 
 -   bmi, age, calories, fat, cholesterol, fiber, alcohol, and betadiet
 
-We focus particularly on correlations stronger than ±0.6, which might indicate collinearity issues if both variables are included in the same regression model.
-
-The correlation table revealed three particularly strong linear relationships which are plotted with scatterplots below.
-
--   **Fat** and **Calories**: r ≈ 0.87
-
--   **Cholesterol** and **Calories**: r ≈ 0.66
-
--   **Cholesterol** and **Fat**: r ≈ 0.71
-
-These variables are highly interrelated, and care should be taken when including them in the same multiple regression model, due to potential multicollinearity.
+We focus particularly on correlations stronger than ±0.6, which might indicate collinearity issues if both variables are included in the same regression model. The results are visualized in scatterplots for the highly correlated pairs.
 
 ```{r, include = FALSE}
 library(rstatix)
@@ -629,13 +633,23 @@ filter(study_data, alcohol >= 200) # Potentially add more comments on this outli
 
 ```
 
-```{r, fig.cap="Correlation scatterplots of variables with abs(cor) > 0.6"}
+```{r}
 plot1 <- ggplot(study_data) + geom_point(data = study_data, aes(y = calories, x = fat))
 plot2 <- ggplot(study_data) + geom_point(data = study_data, aes(y = calories, x = cholesterol))
 plot3 <- ggplot(study_data) + geom_point(data = study_data, aes(y = fat, x = cholesterol))
 
 plot1 + plot2 + plot3
 ```
+
+The correlation table and scatterplots reveal three particularly strong linear relationships:
+
+-   **Fat** and **Calories**: r ≈ 0.87
+
+-   **Cholesterol** and **Calories**: r ≈ 0.66
+
+-   **Cholesterol** and **Fat**: r ≈ 0.71
+
+These variables are highly interrelated, and care should be taken when including them in the same multiple regression model, due to potential multicollinearity.
 
 ### 3.2.2 Outlier Analysis
 
@@ -690,11 +704,11 @@ vif(model_3c) # we see that the GVIF values are reasonable, still the highest fo
 
 After removing calories, all GVIF-adjusted values drop below the threshold, indicating no serious multicollinearity remains. The values for fat and cholesterol remain the highest, but are now within an acceptable range.
 
-We conclude that removing calories substantially improves the multicollinearity profile of the model. We call this **Model** **3.**
+We conclude that removing calories substantially improves the multicollinearity profile of the model. We call this **Model** **3.3**
 
 ## 3.4 Hypothesis Testing and Model Comparison
 
-We now use **Model 3** to test specific hypotheses about the relationships between log-transformed plasma β-carotene and various explanatory variables. First, we interpret the estimated regression coefficients and their confidence intervals, both on the log scale and in the back-transformed domain (i.e., original β-carotene scale).
+We now use **Model 3.3** to test specific hypotheses about the relationships between log-transformed plasma β-carotene and various explanatory variables. First, we interpret the estimated regression coefficients and their confidence intervals, both on the log scale and in the back-transformed domain (i.e., original β-carotene scale).
 
 The table below presents both the log-scale β-estimates and their exponentiated versions (which represent multiplicative effects on the geometric mean of β-carotene), along with 95% confidence intervals:
 
@@ -707,31 +721,29 @@ exp(confint(model_3c)) # confidence intervals of coeffs. in original domain
 +----------------------+-----------------+-------------+------------------+-------------------+
 |                      | **Log-scale β** | **exp(β)**  | **2.5 % exp(β)** | **97.5 % exp(β)** |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Intercept**        | 5.2702253504    | 192.3287664 | 111.8394983      | 330.7449956       |
+| **Intercept**        | 5.2702253504    | 194.4597791 | 85.3053474       | 443.2852903       |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **BMI**              | -0.0320296627   | 0.9684779   | 0.9561460        | 0.9809688         |
+| **BMI**              | -0.0316141867   | 0.9688803   | 0.9565275        | 0.9813927         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Age**              | 0.0060022886    | 1.0060203   | 1.0003499        | 1.0117229         |
+| **Age**              | 0.0054407584    | 1.0054556   | 0.9998229        | 1.0111200         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Fat**              | -0.0012301144   | 0.9987706   | 0.9954761        | 1.0020761         |
+| **Fat**              | 0.0013103650    | 0.9986905   | 0.9953907        | 1.0020012         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Cholesterol**      | -0.0007325298   | 0.9992677   | 0.9984439        | 1.0000923         |
+| **Cholesterol**      | 0.0007114657    | 0.9992888   | 0.9984636        | 1.0001147         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Fiber**            | 0.0227289930    | 1.0229893   | 1.0058037        | 1.0404685         |
+| **Fiber**            | 0.0230049533    | 1.0232716   | 1.0060481        | 1.0407900         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Alcohol**          | 0.0018263703    | 1.0018280   | 0.9954176        | 1.0082798         |
+| **Alcohol**          | 0.0018106489    | 1.0018123   | 0.9953881        | 1.0082780         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Betadiet**         | 0.0558579827    | 1.0574475   | 0.9972458        | 1.1212835         |
+| **Betadiet**         | 0.0550358051    | 1.0565784   | 0.9963092        | 1.1204936         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Smokstat Former**  | -0.0718425845   | 0.9306774   | 0.7877884        | 1.0994836         |
+| **Smokstat Former**  | 0.0690739529    | 0.9332577   | 0.7897174        | 1.1028880         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Smokstat Current** | -0.2728505836   | 0.7612065   | 0.5971060        | 0.9704062         |
+| **Smokstat Current** | 0.2715769150    | 0.7621767   | 0.5975556        | 0.9721492         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Sex male**         | -0.2010518069   | 0.8178701   | 0.6378043        | 1.0487723         |
+| **Sex**              | 0.2180853684    | 1.2436932   | 0.9703005        | 1.5941174         |
 +----------------------+-----------------+-------------+------------------+-------------------+
-| **Vituse often**     | 0.2657965768    | 1.3044697   | 1.0899781        | 1.5611700         |
-+----------------------+-----------------+-------------+------------------+-------------------+
-| **Vituse Selfom**    | 0.2670512397    | 1.3061074   | 1.0719915        | 1.5913527         |
+| **Vituse**           | 0.1307604385    | 0.8774279   | 0.8019314        | 0.9600319         |
 +----------------------+-----------------+-------------+------------------+-------------------+
 
 We then examine whether the overall model is significant and conduct **three hypothesis tests**, summarized in the table and discussion below.
@@ -760,27 +772,25 @@ summary(model_3c) # using for statistical tests
 
 **(ii) Is this model significantly better than the model from chapter 1 which only used bmi?**
 
-This is an **F-test** comparing **Model 1** to the full **Model 3**
+This is an **F-test** comparing **Log-transformed BMI model** (log(β-carotene) \~ bmi) to the full **Model 3.3**
 
 -   **Null hypothesis:** $H_0: \beta_{\text{age}} = \beta_{\text{fat}} = \cdots = \beta_{\text{vituse}} = 0$ - All variables except BMI have no added value
 
 -   **Alternative hypothesis:** $H_1:$ At least one of the additional predictors improves the model fit
 
 ```{r, include = FALSE}
-anova(model_3c, model_1_log) # ii
+anova(model_3c, model_log) # ii
 ```
 
--   **F-statistic**: 6.2597
+-   **F-statistic**: 6.6928
 
--   **Degrees of freedom**: 302 and 313
+-   **Degrees of freedom**: 10 and 302
 
--   **P-value**: 2.633e-09
+-   **P-value**: 1.63e-12
 
 **Conclusion**: We **reject the null hypothesis**. The full model is significantly better than using BMI alone.
 
 **(iii) Is Model 3.3 significantly better than the Categorical Smoking Model?**
-
-This is an **F-test** comparing **Model 2** to the full **Model 3**
 
 -   **Null hypothesis:** $H_0: \beta_{\text{bmi}} = \beta_{\text{age}} = \cdots = \beta_{\text{vituse}} = 0$ - All variables except SmokStat have no added value
 
@@ -790,17 +800,17 @@ This is an **F-test** comparing **Model 2** to the full **Model 3**
 anova(model_3c, model_current) # iii
 ```
 
--   **F-statistic**: 8.6928
+-   **F-statistic**: 6.6928
 
--   **Degrees of freedom**: 302 and 312
+-   **Degrees of freedom**: 10 and 302
 
 -   **P-value**: 1.63e-12
 
-**Conclusion**: Again, we **reject the null hypothesis**. **Model 3** adds substantial explanatory power beyond smokstat alone.
+**Conclusion**: Again, we **reject the null hypothesis**. Model 3(c) adds substantial explanatory power beyond smokstat alone.
 
-## 3.5 Residual Diagnostics for Model 3
+## 3.5 Residual Diagnostics for Model 3.3
 
-To assess the adequacy of **Model 3**, we visually inspect the **studentized residuals** using three standard diagnostic plots:
+To assess the adequacy of Model 3.3, we visually inspect the **studentized residuals** using three standard diagnostic plots:
 
 -   A **residuals vs fitted** plot to detect non-linearity and outliers.
 -   A **spread-location (scale-location)** plot to assess the assumption of **constant variance** (homoscedasticity).
@@ -808,7 +818,7 @@ To assess the adequacy of **Model 3**, we visually inspect the **studentized res
 
 These plots help identify potential problems with the model assumptions.
 
-```{r, fig.cap="Diagnostic plots for Model 3: studentized residuals vs fitted values, spread-location plot, and Q-Q plot."}
+```{r}
 # Calculate studentized residuals and fitted values
 plot_df_3c <- mutate(study_data,
                             fitted_3c = fitted(model_3c),
@@ -859,15 +869,15 @@ The **spread-location plot** indicates that the variance of residuals remains fa
 
 In the **Q-Q plot**, the points generally follow the red reference line, though some deviation is observed in the tails. This indicates slight departure from normality, but not to a degree that would seriously undermine the model.
 
-**Conclusion:** Overall, the diagnostic plots support the adequacy of **Model 3**. The residuals show no major violations of linearity, constant variance, or normality assumptions.
+**Conclusion:** Overall, the diagnostic plots support the adequacy of Model 3.3. The residuals show no major violations of linearity, constant variance, or normality assumptions.
 
-## 3.6. Leverage Analysis for Model 3
+## 3.6. Leverage Analysis for Model 3.3
 
-We now calculate the leverage values for each observation in **Model 3** and inspect them visually in two diagnostic plots. High-leverage points can exert substantial influence on the model estimates and are often located far from the "center" of the predictor space.
+We now calculate the leverage values for each observation in Model 3.3 and inspect them visually in two diagnostic plots. High-leverage points can exert substantial influence on the model estimates and are often located far from the "center" of the predictor space.
 
 We include horizontal reference lines at (1/n) (black) and (2(p+1)/n) (red), where (n) is the number of observations and (p+1) is the number of model parameters (including the intercept). Observations with leverage values above the red line should be carefully examined.
 
-```{r, fig.cap="Leverage of observations"}
+```{r}
 # Calculate leverage
 model_leverage <- data.frame(
   yhat_model_3c = predict(model_3c),
@@ -910,15 +920,15 @@ plot_2 <- ggplot(model_leverage, aes(x = alcohol, y = v_model_3c)) +
 plot_1 / plot_2
 ```
 
-The top plot reveals one observation with leverage well above the red line, marking it as potentially influential. When plotted against alcohol consumption, this same observation clearly stands out — it corresponds to the individual consuming over 200 grams of alcohol daily (as previously identified in chapter 3.2.2)
+The top plot reveals one observation with leverage well above the red line, marking it as potentially influential. When plotted against alcohol consumption, this same observation clearly stands out — it corresponds to the individual consuming over 200 grams of alcohol daily (as previously identified in chapter 3.2.2
 
 This high-leverage point is likely caused by the fact that this individual’s alcohol consumption is extremely distant from all other observations, making them an outlier in the predictor space. As leverage is determined by distance in multivariate predictor space, this makes sense.
 
-## 3.7 Influence Diagnostics: Cook’s Distance and DFBETAS for Model 3
+## 3.7 Influence Diagnostics: Cook’s Distance and DFBETAS for Model 3.3
 
-To evaluate the influence of individual observations on the parameter estimates of **Model 3**, we calculate **Cook’s distance** for each observation and visualize it against the fitted values.
+To evaluate the influence of individual observations on the parameter estimates of **Model 3.3**, we calculate **Cook’s distance** for each observation and visualize it against the fitted values.
 
-```{r, fig.cap="Cooks Distance of observations"}
+```{r}
 # Add Cook's Distance to a prediction dataframe
 model_diagnostics <- study_data |>
   mutate(
@@ -937,32 +947,27 @@ ggplot(model_diagnostics, aes(x = yhat_model3c, y = cooksD)) +
   geom_point(size = 2) +
   geom_point(data = filter(model_diagnostics, alcohol > 200),
              aes(color = "alcohol > 200"), size = 3) +
-  # geom_hline(yintercept = cook_threshold, color = "purple") +
+  geom_hline(yintercept = cook_threshold, color = "purple") +
   geom_hline(yintercept = 4/n, linetype = 2, color = "red") +
   labs(title = "Model 3(c): Cook's Distance vs Fitted Values",
        x = "Fitted values (log β-carotene)",
        y = "Cook's D",
-       caption = "Dashed: 4/n (red)",      #, Solid: F(0.5, p+1, n-p-1) (purple)
+       caption = "Dashed: 4/n (red), Solid: F(0.5, p+1, n-p-1) (purple)",
        color = "Highlight") +
   scale_color_manual(values = c("alcohol > 200" = "blue")) +
   theme_minimal()
 
-```
-
-```{r, include = FALSE}
-high_leverage_obs <- model_diagnostics |> filter(alcohol > 200)
-print(high_leverage_obs)
-
 # Identify observation with largest Cook's D
 top_cook <- model_diagnostics |> slice_max(cooksD, n = 1)
 print(top_cook)
+
 ```
 
-The individual with extreme alcohol consumption—over 200g/day—has the **largest leverage**, but has an average and very acceptable **Cook's distance** of 0.000365. This suggests that while the observation is structurally far from the center of the covariate space (i.e., high leverage), it does **not unduly influence the fitted model**, and therefore there is no immediate reason to exclude it.
+The individual with extreme alcohol consumption—over 200g/day—has the **largest leverage**, but has an acceptable and average Cook's distance.This indicates that although the observation has **high leverage**, it **does not exert undue influence** on the parameter estimates of the model.
 
-Instead, we shift our focus to the observation with the **largest Cook's Distance**, which has a value of approximately 0.099. To better understand **which coefficients** are most affected by this point, we inspect the corresponding **DFBETAS**.
+We identify the observation with the largest Cook's distance of 0.0988. For this observation we find the DFBETAS.
 
-```{r, include = FALSE}
+```{r}
 library("tidyverse")
 
 # Ensure dfbetas are available for all parameters
@@ -990,23 +995,9 @@ dfb_max |>
   arrange(desc(abs(dfbeta)))
 ```
 
-|                        |             |
-|------------------------|-------------|
-| **Term**               | **DFBETA**  |
-| cholesterol            | -0.89848002 |
-| betadiet               | 0.27943057  |
-| sexfemale              | 0.27184195  |
-| (Intercept)            | 0.19952345  |
-| fat                    | 0.18684595  |
-| VItuseseldom           | 0.06405373  |
-| vituseoften            | -0.17770415 |
-| smokstatCurrent smoker | 0.17106852  |
-| smokstatFormer smoker  | 0.14759318  |
-| alcohol                | 0.09788456  |
+The only DFBETA that is particularly high is cholesterol. We plot the DFBETAS for Cholesterol on all observations:
 
-The only DFBETA that is particularly high is cholesterol. We therefore plot the DFBETAS for Cholesterol on all observations:
-
-```{r, warning=FALSE, fig.cap="DFBETAS for the cholesterol coefficient plotted against cholesterol values. The red lines indicate common influence thresholds used to assess whether observations unduly influence the regression estimates."}
+```{r}
 
 # Add selected DFBETAS to diagnostics frame
 dfb <- as.data.frame(dfbetas(model_3c))
@@ -1017,31 +1008,21 @@ model_diagnostics <- model_diagnostics |>
     df_chol      = dfb[["cholesterol"]]
   )
 
-# Plot DFBETAS: Impact on Cholesterol coefficient against cholesterol
-ggplot(model_diagnostics, aes(x = cholesterol, y = df_chol)) +
+# Plot DFBETAS: Impact on Cholesterol coefficient
+ggplot(model_diagnostics, aes(x = yhat_model3c, y = df_chol)) +
   geom_point(size = 2) +
   geom_point(data = filter(model_diagnostics, cooksD > 0.08),
              aes(shape = "Cook's D > 0.08"), color = "red", size = 4) +
   geom_hline(yintercept = c(-1, 1) * sqrt(cook_threshold), color = "red") +
   geom_hline(yintercept = c(-1, 1) * 2 / sqrt(n), color = "red", linetype = "dashed") +
-  labs(title = "DFBETAS on Cholesterol", 
-       x = "Cholesterol (mg/day)", 
-       y = "DFBETAS",
+  labs(title = "DFBETAS on Cholesterol", x = "Fitted values", y = "DFBETAS",
        caption = "Solid: sqrt(F-threshold), Dashed: ±2/√n") +
   theme_minimal() +
   scale_color_manual(values = highlightcolors)
 
 ```
 
-The plot shows that one observation exerts a substantially larger influence on the cholesterol coefficient than all others, as its DFBETA approaches the common cutoff threshold of ±1. This observation corresponds to the highest Cook’s distance and has an extremely high cholesterol intake. Such influential observations may unduly affect the model estimates.
-
-### 3.7.2 Influence of Outlier in Cholesterol on β-Carotene Estimates
-
-To further investigate the reason behind the large influence of the observation with the highest Cook’s distance, we examine the relationship between cholesterol intake and log-transformed plasma β-carotene.
-
-The following plot highlights this influential observation and shows how it diverges from the general data pattern.
-
-```{r, fig.cap="Scatterplot of observations comparing cholesterol intake to Log(Plasma β-carotene)"}
+```{r}
 ggplot(model_diagnostics, aes(x = cholesterol, y = log(betaplasma))) +
   geom_point() +
   geom_point(data = filter(model_diagnostics, cooksD > 0.09),
@@ -1058,71 +1039,51 @@ ggplot(model_diagnostics, aes(x = cholesterol, y = log(betaplasma))) +
   
 #plotten visar outliern har högst kolesterolvärde och påverkar beta estimations mest, antagligen för att 
 #kolesterol har högre påverkan (korrelation) på betaplasma.   
+#largest leverage (alkohol 200 flaskor) hade ingen påverkan på våra estimates (se cooks distance graf)
 #plotta korrelationsgraf mellan betaplasma och kolesterol + betaplamsa och alkohol.
 ```
 
-This plot illustrates that the most influential observation has an exceptionally high cholesterol value and a relatively low plasma β-carotene level. It clearly lies far from the bulk of the data and thus heavily influences the fitted relationship between cholesterol and β-carotene. Its position in this predictor–response space gives it both high leverage and high impact on the slope estimate for cholesterol, as shown previously in the DFBETAS plot. This confirms that its influence stems not only from extremeness in the predictor but also from its strong deviation from the overall regression trend.
-
-# 4.1 Reestimation of Model 3.3 with outlier removed
+## 4.1 Reestimation of Model 3.3 with outlier removed
 
 In this part of the assignment, the outlier data point mentioned in **chapter** **3.7** is removed from the data set and **Model 3.3** is reestimated to see whether we can see any difference in the diagnostic plots. Other than the removed data point, the data remains the same with the same reference categories for *sex, smokstat* and *vituse*, as the one data point removed didn't change effect which of the categorical values were more frequent. The new coefficient estimates of model fitted on the reduced dataset, **"Model 3.3.1",** can be seen in the table below.
 
-```{r, include = FALSE}
-study_data_cleaned <- model_diagnostics |>
-  filter(cooksD <= 0.09) |>  # Remove the outlier based on Cook's D
-  mutate(
-    sex = relevel(sex, ref = "female"),
-    vituse = relevel(vituse, ref = "no"),
-    smokstat = relevel(smokstat, ref = "Never smoker")
-  )
++---------------------+---------------+-------------+------------------+-------------------+
+| Parameter           | **β**         | exp(**β)**  | **2.5 % exp(β)** | 97.5 % **exp(β)** |
++=====================+===============+=============+==================+===================+
+| **intercept**       | 5.4953516236  | 192.5693633 | 102.8209510      | 360.6556770       |
++---------------------+---------------+-------------+------------------+-------------------+
+| **bmi**             | -0.0318708725 | 0.9686317   | 0.9564787        | 0.9809390         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **age**             | 0.0060732191  | 1.0060917   | 1.0005044        | 1.0117102         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **fat**             | -0.0015391882 | 0.9984620   | 0.9952115        | 1.0017231         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **cholesterol**     | -0.0003615077 | 0.9996386   | 0.9987949        | 1.0004829         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **fiber**           | 0.0231324057  | 1.0234020   | 1.0064598        | 1.0406294         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **alcohol**         | 0.0015117870  | 1.0015129   | 0.9951960        | 1.0078700         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **betadiet**        | 0.0476578519  | 1.0488117   | 0.9897400        | 1.1114091         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **smokstatformer**  | -0.0841591231 | 0.9192850   | 0.7799284        | 1.0835416         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **smokstatcurrent** | -0.2936459897 | 0.7455404   | 0.5867189        | 0.9473540         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **sex**             | 0.2348952060  | 1.2647762   | 0.9890707        | 1.6173352         |
++---------------------+---------------+-------------+------------------+-------------------+
+| **vituse\           | -0.0210617860 | 0.9791585   | 0.8094944        | 1.1843828         |
+| not often**         |               |             |                  |                   |
++---------------------+---------------+-------------+------------------+-------------------+
+| **vituse\           | -0.2817784870 | 0.7544408   | 0.6318927        | 0.9007556         |
+| no**                |               |             |                  |                   |
++---------------------+---------------+-------------+------------------+-------------------+
 
-# Fit re-estimated model on cleaned data
-model_3c1 <- lm(log(betaplasma) ~ bmi + age + fat + cholesterol +
-                  fiber + alcohol + betadiet + smokstat + sex + vituse,
-                data = study_data_cleaned)
-
-model_3c1$coefficients
-exp(model_3c1$coefficients)
-exp(confint(model_3c1))
-```
-
-+----------------------+---------------+-------------+------------------+-------------------+
-| Parameter            | **β**         | exp(**β)**  | **2.5 % exp(β)** | 97.5 % **exp(β)** |
-+======================+===============+=============+==================+===================+
-| **intercept**        | 5.2135731366  | 183.7494485 | 107.6307964      | 313.700734        |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **bmi**              | -0.0318708725 | 0.9686317   | 0.9564787        | 0.9809390         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **age**              | 0.0060732191  | 1.0060917   | 1.0005044        | 1.0117102         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **fat**              | -0.0015391882 | 0.9984620   | 0.9952115        | 1.0017231         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **cholesterol**      | -0.0003615077 | 0.9996386   | 0.9987949        | 1.0004829         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **fiber**            | 0.0231324057  | 1.0234020   | 1.0064598        | 1.0406294         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **alcohol**          | 0.0015117870  | 1.0015129   | 0.9951960        | 1.0078700         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **betadiet**         | 0.0476578519  | 1.0488117   | 0.9897400        | 1.1114091         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **smokstat former**  | -0.0841591231 | 0.9192850   | 0.7799284        | 1.0835416         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **smokstat current** | -0.2936459897 | 0.7455404   | 0.5867189        | 0.9473540         |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **sex male**         | -0.2348952060 | 0.7906537   | 0.6183010        | 1.011050          |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **vituse\            | 0.2817784870  | 1.3254851   | 1.1101790        | 1.582547          |
-| often**              |               |             |                  |                   |
-+----------------------+---------------+-------------+------------------+-------------------+
-| **vituse\            | 0.2607167010  | 1.2978599   | 1.0682971        | 1.576753          |
-| seldom**             |               |             |                  |                   |
-+----------------------+---------------+-------------+------------------+-------------------+
-
-: *Reestimated coefficients for model 3.3 on the reduced dataset*
+: *Reestimated coefficients for model 3.3.1 on the reduced dataset*
 
 Furthermore, we plotted the Cook's distance plot for the model on the reduced dataset, which can be seen below. We see a clear difference between this plot and the one in chapter 3.7 with the full data set. The removal of the outlier datapoint has resulted in no datapoints having a particularly large Cook's distance value. We can draw the conclusion that there don't seem to be any more outlier datapoints to be taken care of.
 
-```{r, warning = FALSE, fig.cap="Cook's distance for reduced dataset"}
+```{r}
 mutate(study_data,
        sex = factor(sex,
                     levels = c(2, 1),
@@ -1160,6 +1121,8 @@ ggplot(no_outlier, aes(yhat_new, D_new)) +
   scale_color_manual(values = highlightcolors)
 ```
 
+*Cook's distance plotted against fitted values for model 3.3.1 (model 3.3 reestimated on reduced dataset)*
+
 Next we checked the pairwise correlations between the continuous variables on the dataset without outlier. Once again, we focus on the variables having correlation $|\rho| > 0.6$. Like the case with the outlier, it is once again the correlations between calories-fat, calories-cholesterol and cholesterol-fat that proved problematic. The correlations between these were:
 
 -   calories / fat : $\rho = 0.87$
@@ -1174,22 +1137,16 @@ Moreover, we computed and compared the Generalized Variance Inflation Factor (GV
 
 ## 4.2 Stepwise variable selection
 
-We performed 2 stepwise variable selections for **model 3** with BIC as criterion, for which the only difference is the dataset used to estimate these models. For both of these, we started with the null model as the smallest (which is just the intercept), and then the largest allowed model being all variables seen in the table in *Chapter 4.1.* For the two models, the variables added were **different**. In neither of the two case were any variables removed after being added (no backward steps). The selection order for the model with outlier in the data was:
-
-```{r, include = FALSE}
-full_model_no_outlier <- lm(log(betaplasma) ~ ., data = no_outlier)
-full_model_with_outlier <- lm(log(betaplasma) ~ ., data = study_data)
-
-stepwise_bic_no_outlier <- step(full_model_no_outlier, direction = "both", k = log(nrow(no_outlier)))
-```
+We performed an stepwise variable selection for **model 3.3** and **model 3.3.1** with BIC as criterion, for which the only difference is the dataset used to estimate these models. For both of these, we started with the null model as the smallest (which is just the intercept), and then the largest allowed model being all variables seen in the table in *Chapter 4.1.* For the two models, the variables added were **different**. In neither of the two case were any variables removed after being added (no backward steps). The selection order for the model with outlier in the data was:
 
 -   *bmi* $\rightarrow$ *fiber* $\rightarrow$ *cholesterol* $\rightarrow$ *vituse_no* and *vituse_not_often*
 
 And for the model without outlier in the data:
 
--   *bmi* $\rightarrow$ *fiber* $\rightarrow$ *fat* $\rightarrow$ *vituse_no* and vituse_not_often
+-   *bmi* $\rightarrow$ *fiber* $\rightarrow$ *fat* $\rightarrow$ *vituse_no* and \*vituse_not_often\
+    -   
 
-The parameter estimates and confidence intervals for in the case of the full data set as well as the reduced dataset are seen below (we call these **model 4**). The interesting thing is that the variables that differ between the models are **cholesterol** and **fat**. As seen in *3.2* and *4.1*, these variables had high correlation, so it is not a surprise that either model only includes one of these. Also interesting is that in the case without outlier, the stepwise selection chose fat instead of cholesterol. This also makes sense, as we found that the the outlier was an outlier exactly from the extreme value in cholesterol.
+The parameter estimates and confidence intervals for in the case of the full data set as well as the reduced dataset are seen below (we call these models 4b). The interesting thing is that the variables that differs between the models are **cholesterol** and **fat**. As seen in *3.2* and *4.1*, these variables had high correlation, so it is not a surprise that either model only includes one of these. Also interesting is that in the case without outlier, the stepwise selection chose fat instead of cholesterol. This also makes sense, as we found that the the outlier was an outlier exactly from the extreme value in cholesterol.
 
 +------------------+--------------+-------------+------------------+-------------------+
 | Parameter        | **β**        | exp(**β)**  | **2.5 % exp(β)** | **97.5 % exp(β)** |
@@ -1224,87 +1181,3 @@ The parameter estimates and confidence intervals for in the case of the full dat
 +------------------+--------------+-------------+------------------+-------------------+
 
 *Parameter estimates with confidence intervals for models 4b by stepwise selection. With outlier (above) and without outlier (below).*
-
-# 5.1 Fine-tuning the Model
-
-To determine whether it is necessary to have three categories in the categorical x-variables "vituse" and "smokstat" we look at the confidence interval for the beta-variables in **model 4**. The confidence interval for the category "seldom" in "vituse" includes zero. From this result, the conclusion that "vituse" should be only two categories ("yes" and "no") is drawn.
-
-```{r, include = FALSE}
-vituse_row <- fct_collapse(no_outlier$vituse,
-                           yes = c("seldom", "often"),
-                           no = "no")
-
-data_5a <- mutate(no_outlier,
-                  vituse = vituse_row)
-
-model5a <- lm(log(betaplasma) ~ age + sex + bmi + vituse + fiber, data = data_5a)
-```
-
-Now we present the new beta estimates confidence intervals for this new **Model 5**:
-
-|               |              |             |
-|---------------|--------------|-------------|
-|               | **2.5%**     | **97.5%**   |
-| **Intercept** | 4.629663852  | 5.57369646  |
-| **age**       | 0.003870043  | 0.01451842  |
-| **sexmale**   | -0.577195070 | -0.11476421 |
-| **bmi**       | -0.043363058 | -0.01848219 |
-| **vituseno**  | -0.462672341 | -0.14454230 |
-| **fiber**     | 0.013935129  | 0.04213240  |
-
-: As we can see in the confidence intervals for the new beta estimates for the updated variables, no interval contains zero which means that all the variables included in the model has a significant effect on the outcome.
-
-## 5.2 compare the different models
-
-After refitting the models for the new data without the outlier. We summarize the models in the table below:
-
-```{r, include = FALSE}
-
-# Creating new models for the reduced dataset
-model1b_new <- lm(log(betaplasma) ~ bmi, data = data_5a) 
-model2b_new <- lm(log(betaplasma) ~ relevel(smokstat, "Never smoker"), data = data_5a )
-model3c_new <- lm(log(betaplasma) ~ ., data = data_5a)
-model4b_new <- update(stepwise_bic_no_outlier, data = data_5a)
-
-# betas
-model5a$coefficients
-model4b_new$coefficients
-
-# confint betas
-confint(model5a)
-
-# residual standard deviation
-summary(model5a)$sigma
-
-# R^2
-summary(model5a)$r.squared
-
-# adjusted R^2
-summary(model5a)$adj.r.squared
-
-# AIC and BIC
-AIC(model5a)
-BIC(model5a)
-```
-
-+-------------+-------------------------------+---------------+-------------------+---------------------------------+-----------+----------+
-|             | **Number of beta parameters** | **R\^2**      | **R\^2 adjusted** | **Residual Standard Deviation** | **BIC**   | **AIC**  |
-+-------------+-------------------------------+---------------+-------------------+---------------------------------+-----------+----------+
-| **Model 1** | 1                             | 0.07836045    | 0.07540648        | 0.7189481                       | 699.1165  | 687.8683 |
-+-------------+-------------------------------+---------------+-------------------+---------------------------------+-----------+----------+
-| **Model 2** | 2                             | 0.04020327    | 0.03403094        | 0.7348585                       | 717.604   | 702.6064 |
-+-------------+-------------------------------+---------------+-------------------+---------------------------------+-----------+----------+
-| **Model 3** | 12                            | 0.2532462     | 0.2182811         | 0.66107                         | 707.7871  | 647.7968 |
-+-------------+-------------------------------+---------------+-------------------+---------------------------------+-----------+----------+
-| **Model 4** | 6                             | 0.21026       | 0.1974396         | 0.6698244                       | 673.6166  | 647.3708 |
-+-------------+-------------------------------+---------------+-------------------+---------------------------------+-----------+----------+
-| **Model 5** | 5                             | 0.21026       | 0.1974396         | 0.6698244                       | 673.6166  | 647.3708 |
-+-------------+-------------------------------+---------------+-------------------+---------------------------------+-----------+----------+
-
-Among the five models, Model 3 shows the highest explanatory power with an R\^2 of 0.253 and an adjusted R\^2 of 0.219, indicating it captures more variability in the response variable than the others. However, this model also includes 12 parameters, raising concerns about potential overfitting. While its AIC is the lowest (647.80), its BIC is slightly worse than that of Models 4 and 5.
-
-Models 4 and 5, on the other hand, provide a more parsimonious fit with only 5–6 parameters. They achieve similar adjusted R\^2 and nearly identical AIC values compared to Model 3. However, they outperform Model 3 in terms of BIC, which penalizes complexity more strongly. Their lower BIC values (673.62 vs. 707.79) suggest they strike a better balance between goodness of fit and simplicity.
-
-**Conclusion**
-
-While Model 3 provides the best fit in terms of raw explanatory power, Model 5 (or Model 4) offers the most reasonable trade-off between accuracy and complexity. Given the similar adjusted R\^2 and residual standard deviation to Model 3, but with far fewer parameters and better BIC, Model 5 is preferred for its interpretability and efficient use of predictors.
