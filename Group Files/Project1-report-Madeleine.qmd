@@ -34,7 +34,7 @@ Spelling and grammar suggestions from **RStudio Visual Editor** were used.
 ## Author Contributions
 
 | Name           | Roles                                                      |
-|---------------------------|---------------------------------------------|
+|----------------|------------------------------------------------------------|
 | Mattis Ranheim | Analysis, Discussions, Programming, Visualisation, Writing |
 |                |                                                            |
 |                |                                                            |
@@ -52,7 +52,7 @@ The study highlights considerable individual variation in plasma β-carotene lev
 The dataset used in this project contains **315 observations** and **12 variables**, stored in the file `carotene.xlsx`. Each row corresponds to an individual patient from the study. The variables are described below:
 
 | Variable | Description |
-|--------------------------------------|----------------------------------|
+|----|----|
 | `age` | Age (years) |
 | `sex` | Sex (1 = Male, 2 = Female) |
 | `smokstat` | Smoking status (1 = Never, 2 = Former, 3 = Current) |
@@ -354,7 +354,7 @@ print(summary_table)
 ```
 
 |  |  |  |  |  |  |
-|------------|------------|------------|------------|------------|------------|
+|----|----|----|----|----|----|
 | **Smokstat** | **Count** | **Mean** $\beta$ | **S.D.** $\beta$ | **Mean** $log(\beta)$ | **S.D.** $log(\beta)$ |
 | Never Smoker | 157 | 206.1146 | 193.14184 | 5.050849 | 0.7453628 |
 | Former Smoker | 115 | 193.4696 | 191.63952 | 4.941126 | 0.7975007 |
@@ -698,7 +698,7 @@ exp(confint(model_3c)) # confidence intervals of coeffs. in original domain
 ```
 
 |  |  |  |  |  |
-|---------------|---------------|---------------|---------------|---------------|
+|----|----|----|----|----|
 |  | **Log-scale β** | **exp(β)** | **2.5 % exp(β)** | **97.5 % exp(β)** |
 | **Intercept** | 5.2702253504 | 194.4597791 | 85.3053474 | 443.2852903 |
 | **BMI** | -0.0316141867 | 0.9688803 | 0.9565275 | 0.9813927 |
@@ -1174,7 +1174,7 @@ The code constructed calculates the beta parameters and their confidence interva
 | **fiber**     | 0.013935129  | 0.04213240  |
 
 |  |  |  |  |  |  |
-|------------|------------|------------|------------|------------|------------|
+|----|----|----|----|----|----|
 |  | **R\^2** | **R\^2 adjusted** | **residual standard deviation** | **BIC** | **AIC** |
 | **Model 1b** | 0.07836045 | 0.07540648 | 0.7189481 | 699.1165 | 687.8683 |
 | **Model 2b** | 0.04020327 | 0.03403094 | 0.7348585 | 717.604 | 702.6064 |
